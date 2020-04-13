@@ -87,6 +87,7 @@ stages:
 
     - script: pip install $(Build.SourcesDirectory)/*.whl
       displayName: "Install from wheel file"
+      condition: false
 
     - script: python -m pytest test/unit/metrics/
       displayName: "Run some quick tests"
