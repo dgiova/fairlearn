@@ -3,6 +3,7 @@
 parameters:
   fairlearnWheelArtifactName: ""
 
+steps:
   - script: rm -rf fairlearn
     displayName: "Remove fairlearn directory"
 
