@@ -1,0 +1,22 @@
+# Step template to install fairlearn from a wheel file in a pipeline artifact
+
+parameters:
+  fairlearnWheelArtifactName:
+
+  - script: rm -rf fairlearn
+    displayName: "Remove fairlearn directory"
+
+  - script: ls -p
+    displayName: "Show directory contents to confirm removal"
+
+  - task: DownloadPipelineArtifact@2
+    inputs:
+      artifact: ${{parameters.fairlearnWheelArtifactName}}
+      patterns: '**/*.whl'
+      path: $(Build.SourcesDirectory)/
+
+  - script: ls $(Build.SourcesDirectory)/*.whl
+    displayName: "List wheels"
+
+  - script: pip install $(Build.SourcesDirectory)/*.whl
+    displayName: "Install from wheel file"
