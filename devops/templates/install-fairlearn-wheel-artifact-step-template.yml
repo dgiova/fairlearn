@@ -1,7 +1,7 @@
 # Step template to install fairlearn from a wheel file in a pipeline artifact
 
 parameters:
-  fairlearnWheelArtifactName:
+  fairlearnWheelArtifactName: ""
 
   - script: rm -rf fairlearn
     displayName: "Remove fairlearn directory"
