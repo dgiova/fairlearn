@@ -41,4 +41,4 @@ stages:
       displayName: "Publish wheel tp artifact"
       inputs:
         path: $(System.DefaultWorkingDirectory)/dist
-        artifact: '${{parameters.packageArtifactName}}'
+        artifact: 'Wheel'
