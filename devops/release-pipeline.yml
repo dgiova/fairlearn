@@ -1,0 +1,44 @@
+variables:
+  poolImage: "ubuntu-latest"
+  poolPythonVersion: 3.6
+  FreezeFileStem: 'requirements-freeze-predeploy'
+
+trigger: none # No CI build
+
+pr: none # Not for pull requests
+
+
+stages:
+- stage: CreateWheel
+  pool:
+    vmImage: $(PoolImage)
+
+  jobs:
+  - job: 'Create_Wheel'
+
+    steps:
+    - task: UsePythonVersion@0
+        displayName: 'Use Python 3.6'
+        inputs:
+          versionSpec: 3.6
+          addToPath: true
+    
+    - template: python-infra-upgrade-steps-template.yml
+
+    - script: pip install setuptools wheel 
+      displayName: 'Install setuptools'
+
+    - script: pip install -r requirements.txt
+      displayName: "Install fairlearn requirements"
+
+    - script: python ./scripts/build_widget.py --yarn-path /usr/bin/yarn
+      displayName: 'Build widget'
+
+    - script: python setup.py sdist bdist_wheel
+      displayName: 'Build Wheel'
+
+    - task: PublishPipelineArtifact@1
+      displayName: "Publish wheel tp artifact"
+      inputs:
+        path: $(System.DefaultWorkingDirectory)/dist
+        artifact: '${{parameters.packageArtifactName}}'
