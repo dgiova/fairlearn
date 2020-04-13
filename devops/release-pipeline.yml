@@ -76,7 +76,17 @@ stages:
     - script: ls
       displayName: "Show directory contents to confirm removal"
 
-    - script: pip install $(Pipeline.Workspace)/Wheel/*.whl
+    steps:
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        artifact: Wheel
+        patterns: '**/*.whl'
+        path: $(Build.SourcesDirectory)/
+
+    - script: ls $(Build.SourcesDirectory)/*.whl
+      displayName: "List wheels"
+
+    - script: pip install $(Build.SourcesDirectory)/*.whl
       displayName: "Install from wheel file"
 
     - script: python -m pytest test/unit/metrics/
