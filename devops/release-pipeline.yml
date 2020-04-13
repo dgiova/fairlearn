@@ -76,7 +76,6 @@ stages:
     - script: ls
       displayName: "Show directory contents to confirm removal"
 
-    steps:
     - task: DownloadPipelineArtifact@2
       inputs:
         artifact: Wheel
