@@ -23,7 +23,7 @@ stages:
         versionSpec: 3.6
         addToPath: true
     
-    - template: python-infra-upgrade-steps-template.yml
+    - template: templates/python-infra-upgrade-steps-template.yml
 
     - script: pip install setuptools wheel 
       displayName: 'Install setuptools'
