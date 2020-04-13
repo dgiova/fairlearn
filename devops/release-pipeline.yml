@@ -33,12 +33,51 @@ stages:
 
     - script: python ./scripts/build_widget.py --yarn-path /usr/bin/yarn
       displayName: 'Build widget'
+      condition: false
 
     - script: python setup.py sdist bdist_wheel
       displayName: 'Build Wheel'
 
     - task: PublishPipelineArtifact@1
-      displayName: "Publish wheel tp artifact"
+      displayName: "Publish wheel to artifact"
       inputs:
         path: $(System.DefaultWorkingDirectory)/dist
         artifact: 'Wheel'
+
+# ============================================================================
+
+- stage: TestWheel
+  pool:
+    vmImage: $(PoolImage)
+
+  jobs:
+  - job: 'Test_Wheel'
+
+    steps:
+    - task: UsePythonVersion@0
+      displayName: 'Use Python 3.6'
+      inputs:
+        versionSpec: 3.6
+        addToPath: true
+    
+    - template: templates/python-infra-upgrade-steps-template.yml
+
+    - template: templates/python-infra-upgrade-steps-template.yml
+
+    - template: templates/requirements-installation-steps-template.yml
+      parameters:
+        pyVer: '3.6'
+        requirementsFile: 'requirements.txt'
+        pinRequirements: false
+
+    - script: rm -rf fairlearn
+      displayName: "Remove fairlearn directory"
+
+    - script: ls
+      displayName: "Show directory contents to confirm removal"
+
+    - script: pip install $(Pipeline.Workspace)/Wheel/*.whl
+      displayName: "Install from wheel file"
+
+    - script: python -m pytest test/unit/metrics/
+      displayName: "Run some quick tests"
