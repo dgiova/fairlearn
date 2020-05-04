@@ -75,3 +75,58 @@ class TestExponentiatedGradientArguments:
         assert error == pytest.approx(0.25, abs=_PRECISION)
         assert expgrad._n_oracle_calls == 32
         assert n_predictors == 3
+
+# TODO: check logic of eps testing in conditional selection rate
+class TestConditionalSelectionRateEps:
+    @pytest.mark.parametrize("transformA", candidate_A_transforms)
+    @pytest.mark.parametrize("transformY", candidate_Y_transforms)
+    @pytest.mark.parametrize("transformX", candidate_X_transforms)
+    @pytest.mark.parametrize("A_two_dim", [False, True])
+    @pytest.mark.uncollect_if(func=is_invalid_transformation)
+    def test_eps(self, transformX, transformY, transformA, A_two_dim):
+        # This is an expanded-out version of one of the smoke tests
+        X, y, A = _get_data(A_two_dim)
+        merged_A = _map_into_single_column(A)
+
+        expgrad = ExponentiatedGradient(
+            LeastSquaresBinaryClassifierLearner(),
+            constraints=DemographicParity(),
+            eps=0.1)
+        expgrad.fit(transformX(X), transformY(y), sensitive_features=transformA(A))
+
+        def Q(X): return expgrad._pmf_predict(X)[:, 1]
+
+        disparity_moment = DemographicParity()
+        eps = 0.01
+        disparity_moment.load_data(X, y, sensitive_features=merged_A, eps=eps)
+        disparity_eps = disparity_moment.gamma(Q, with_RHS=True).max()
+        disparity_no_eps = disparity_moment.gamma(Q, with_RHS=False).max()
+        assert (np.isclose(np.abs(disparity_no_eps-disparity_eps), eps))
+
+# TODO: check logic of eps testing in error rate
+class TestErrorRateEps:
+    @pytest.mark.parametrize("transformA", candidate_A_transforms)
+    @pytest.mark.parametrize("transformY", candidate_Y_transforms)
+    @pytest.mark.parametrize("transformX", candidate_X_transforms)
+    @pytest.mark.parametrize("A_two_dim", [False, True])
+    @pytest.mark.uncollect_if(func=is_invalid_transformation)
+    def test_eps(self, transformX, transformY, transformA, A_two_dim):
+        # This is an expanded-out version of one of the smoke tests
+        X, y, A = _get_data(A_two_dim)
+        merged_A = _map_into_single_column(A)
+
+        expgrad = ExponentiatedGradient(
+            LeastSquaresBinaryClassifierLearner(),
+            constraints=DemographicParity(),
+            eps=0.1)
+        expgrad.fit(transformX(X), transformY(y), sensitive_features=transformA(A))
+
+        def Q(X): return expgrad._pmf_predict(X)[:, 1]
+
+        eps = 0.01
+        error = ErrorRate()
+        error.load_data(X, y, sensitive_features=merged_A, eps=eps)
+        error_eps = error.gamma(Q, with_RHS=True)[0]
+        error_noeps = error.gamma(Q, with_RHS=False)[0]
+
+        assert (np.isclose(np.abs(error_noeps - error_eps), eps))
